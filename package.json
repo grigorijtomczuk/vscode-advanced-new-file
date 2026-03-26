@@ -1,7 +1,7 @@
 {
   "name": "advanced-new-file-plus",
   "displayName": "advanced-new-file-plus",
-  "version": "1.4.0",
+  "version": "1.4.1",
   "description": "Create files anywhere in your workspace from the keyboard (grigorijtomczuk's fork)",
   "categories": [
     "Other"
