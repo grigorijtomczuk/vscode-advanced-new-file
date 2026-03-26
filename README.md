@@ -1,10 +1,7 @@
-# VSCode Advanced New File
-
-[![Travis](https://travis-ci.org/patbenatar/vscode-advanced-new-file.svg?branch=master)](https://travis-ci.org/patbenatar/vscode-advanced-new-file)
-[![AppVeyor](https://ci.appveyor.com/api/projects/status/jelxhuh2ssuckk0n/branch/master?svg=true)](https://ci.appveyor.com/project/patbenatar/vscode-advanced-new-file)
+# VSCode Advanced New File +
 
 Inspired by Sublime's AdvancedNewFile plugin, this adds the ability to create
-files anywhere in your workspace.
+files anywhere in your workspace. (grigorijtomczuk's fork)
 
 ![Demo](https://media.giphy.com/media/l3vRfRJO7ZX6WNJQs/source.gif)
 
