@@ -70,9 +70,13 @@ describe('Advanced New File', () => {
 
     context('with a gitignore file', () => {
       const gitignoreFile = path.join(dummyProjectRoot, '.gitignore');
-      before(() => {
-        fs.writeFileSync(gitignoreFile, 'ignored/**\nnested-ignored/');
-      });
+      before(() => fs.writeFileSync(gitignoreFile, [
+        'ignored/',
+        'nested-ignored/',
+        'ignored-reincludes/**',
+        '!ignored-reincludes/reincluded/'
+      ].join('\n'))
+      );
       after(() => fs.unlinkSync(gitignoreFile));
 
       it('does not include gitignored directories', async () => {
@@ -88,6 +92,14 @@ describe('Advanced New File', () => {
 
         expect(relativePaths)
           .not.to.include(`${path.sep}folder${path.sep}nested-ignored`);
+      });
+
+      it('includes re-included directories via !', async () => {
+        let result = await AdvancedNewFile.directories(dummyProjectRoot);
+        let relativePaths = result.map(r => r.relative);
+
+        expect(relativePaths)
+          .to.include(`${path.sep}ignored-reincludes${path.sep}reincluded`);
       });
     });
 
