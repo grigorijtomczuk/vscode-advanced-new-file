@@ -137,9 +137,7 @@ export function showQuickPick(
   choices: Promise<vscode.QuickPickItem[]>,
 ): Thenable<QuickPickItem> {
   return vscode.window.showQuickPick<vscode.QuickPickItem>(choices, {
-    placeHolder:
-      'First, select an existing path to create relative to ' +
-      '(larger projects may take a moment to load)',
+    placeHolder: 'Select a base directory for the new file',
   });
 }
 
