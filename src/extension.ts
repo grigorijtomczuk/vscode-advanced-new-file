@@ -254,9 +254,15 @@ export function showBasePathQuickPick(
 ): Thenable<vscode.QuickPickItem | undefined> {
   const qp = vscode.window.createQuickPick<vscode.QuickPickItem>();
 
-  qp.busy = true;
+  const initItem: vscode.QuickPickItem = {
+    label: '$(loading~spin) Scanning workspace directories...',
+    alwaysShow: true,
+    invalid: true,
+  };
+
   qp.enabled = false;
   qp.placeholder = 'Select a base directory for the new file';
+  qp.items = [initItem];
 
   qp.show();
 
@@ -266,7 +272,6 @@ export function showBasePathQuickPick(
     choices.then((items) => {
       allItems = items;
       qp.items = items;
-      qp.busy = false;
       qp.enabled = true;
     });
 
