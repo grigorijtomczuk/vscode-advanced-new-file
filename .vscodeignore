@@ -4,6 +4,7 @@
 !node_modules/**
 !out/src/extension.js
 !CHANGELOG.md
+!icon.png
 !LICENSE
 !package.json
 !README.md

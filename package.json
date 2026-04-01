@@ -2,7 +2,7 @@
   "name": "advanced-new-file-plus",
   "displayName": "advanced-new-file-plus",
   "version": "1.4.6",
-  "description": "Create files anywhere in your workspace from the keyboard (grigorijtomczuk's fork)",
+  "description": "Create files anywhere in your workspace with keyboard (advanced-new-file fork)",
   "categories": [
     "Keymaps",
     "Other"
@@ -115,5 +115,6 @@
   },
   "engines": {
     "vscode": "^1.105.0"
-  }
+  },
+  "icon": "./icon.png"
 }
