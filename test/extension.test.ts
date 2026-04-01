@@ -29,15 +29,50 @@ const mockGetConfiguration = (
   };
 };
 
+const createQuickPickMock = (selectedItems: unknown[]) => {
+  let didAcceptCallback: () => void;
+  let didHideCallback: () => void;
+
+  return {
+    items: [] as unknown[],
+    selectedItems,
+    placeholder: '',
+    show: () => setTimeout(() => didAcceptCallback && didAcceptCallback(), 0),
+    hide: () => setTimeout(() => didHideCallback && didHideCallback(), 0),
+    dispose: () => {},
+    onDidChangeValue: () => ({ dispose: () => {} }),
+    onDidAccept: (cb: () => void) => {
+      didAcceptCallback = cb;
+      return { dispose: () => {} };
+    },
+    onDidHide: (cb: () => void) => {
+      didHideCallback = cb;
+      return { dispose: () => {} };
+    },
+  };
+};
+
+const createQuickPickFactory = (...selectedItemsLists: unknown[][]) => {
+  const quickPicks = selectedItemsLists.map(createQuickPickMock);
+  return () => quickPicks.shift();
+};
+
 describe('Advanced New File', () => {
-  describe('showInputBox', () => {
+  describe('showNewItemQuickPick', () => {
     it('resolves with the path to input from workspace root', async () => {
       const advancedNewFile = proxyquire('../src/extension', {
         vscode: {
           window: {
-            showInputBox: () => {
-              return Promise.resolve('input/path/to/file.rb');
-            },
+            createQuickPick: () =>
+              createQuickPickMock([
+                {
+                  option: {
+                    fsLocation: {
+                      absolute: '/base/dir/input/path/to/file.rb',
+                    },
+                  },
+                },
+              ]),
           },
         },
       }) as typeof AdvancedNewFile;
@@ -60,7 +95,7 @@ describe('Advanced New File', () => {
         },
       };
 
-      const result = await advancedNewFile.showInputBox(directory);
+      const result = await advancedNewFile.showNewItemQuickPick(directory);
 
       expect(result).to.eq(expectedPath);
     });
@@ -69,12 +104,12 @@ describe('Advanced New File', () => {
   describe('directories', () => {
     const dummyProjectRoot = path.join(__dirname, 'dummy_project');
 
-    it('only returns directories, prepended with /', async () => {
+    it('only returns directory names', async () => {
       const result = await AdvancedNewFile.directories(dummyProjectRoot);
       const relativePaths = result.map((r) => r.relative);
 
-      expect(relativePaths).to.include(`${path.sep}folder`);
-      expect(relativePaths).not.to.include(`${path.sep}folder${path.sep}file`);
+      expect(relativePaths).to.include(`folder`);
+      expect(relativePaths).not.to.include(path.join('folder', 'file'));
     });
 
     context('with a gitignore file', () => {
@@ -113,7 +148,7 @@ describe('Advanced New File', () => {
         const relativePaths = result.map((r) => r.relative);
 
         expect(relativePaths).to.include(
-          `${path.sep}ignored-reincludes${path.sep}reincluded`,
+          path.join('ignored-reincludes', 'reincluded'),
         );
       });
     });
@@ -178,7 +213,7 @@ describe('Advanced New File', () => {
         const result = await advancedNewFile.directories(dummyProjectRoot);
         const relativePaths = result.map((r) => r.relative);
 
-        expect(relativePaths).to.include(`${path.sep}folder`);
+        expect(relativePaths).to.include('folder');
       });
     });
 
@@ -216,7 +251,7 @@ describe('Advanced New File', () => {
         const result = await advancedNewFile.directories(dummyProjectRoot);
         const relativePaths = result.map((r) => r.relative);
 
-        expect(relativePaths).to.include(`${path.sep}folder`);
+        expect(relativePaths).to.include('folder');
       });
     });
   });
@@ -779,12 +814,26 @@ describe('Advanced New File', () => {
           },
           window: {
             showErrorMessage,
-            showQuickPick: () =>
-              Promise.resolve({
-                label: '/path/to',
-                option: selectedOption,
-              }),
-            showInputBox: () => Promise.resolve('/input/path/to/file.rb'),
+            createQuickPick: createQuickPickFactory(
+              [
+                {
+                  label: '/path/to',
+                  option: selectedOption,
+                },
+              ],
+              [
+                {
+                  option: {
+                    fsLocation: {
+                      absolute: path.join(
+                        selectedAbsoluteDir,
+                        '/input/path/to/file.rb',
+                      ),
+                    },
+                  },
+                },
+              ],
+            ),
             showTextDocument,
           },
         },
@@ -859,12 +908,26 @@ describe('Advanced New File', () => {
           },
           window: {
             showErrorMessage,
-            showQuickPick: () =>
-              Promise.resolve({
-                label: 'path/to',
-                option: selectedOption,
-              }),
-            showInputBox: () => Promise.resolve('input/path/to/folder/'),
+            createQuickPick: createQuickPickFactory(
+              [
+                {
+                  label: 'path/to',
+                  option: selectedOption,
+                },
+              ],
+              [
+                {
+                  option: {
+                    fsLocation: {
+                      absolute: path.join(
+                        selectedAbsoluteDir,
+                        'input/path/to/folder/',
+                      ),
+                    },
+                  },
+                },
+              ],
+            ),
             showInformationMessage,
             showTextDocument,
           },
@@ -927,8 +990,7 @@ describe('Advanced New File', () => {
         command();
 
         expect(showErrorMessage).to.have.been.called.with(
-          "It doesn't look like you have a folder opened in your " +
-            'workspace. Try opening a folder first.',
+          "It doesn't look like you have a directory opened in your workspace. Try opening a directory first.",
         );
       });
     });
