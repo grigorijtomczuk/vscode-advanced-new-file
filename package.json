@@ -116,5 +116,5 @@
   "engines": {
     "vscode": "^1.105.0"
   },
-  "icon": "./icon.png"
+  "icon": "icon.png"
 }
