@@ -40,6 +40,39 @@ function isFolderDescriptor(filepath: string): boolean {
   return filepath.charAt(filepath.length - 1) === path.sep;
 }
 
+function fuzzyMatchPath(query: string, target: string): boolean {
+  query = query.toLowerCase();
+  target = target.toLowerCase();
+
+  const segments = target.split(/[/\\\-_]+/).filter(Boolean);
+
+  const matchSegments = (queryIdx: number, segIdx: number): boolean => {
+    if (queryIdx >= query.length) return true;
+    if (segIdx >= segments.length) return false;
+
+    const segment = segments[segIdx];
+    let segmentPos = 0;
+    let newQueryIdx = queryIdx;
+
+    while (
+      newQueryIdx < query.length &&
+      segmentPos < segment.length &&
+      query[newQueryIdx] === segment[segmentPos]
+    ) {
+      newQueryIdx++;
+      segmentPos++;
+    }
+
+    // Try either continuing with the matched characters OR skipping this segment
+    return (
+      matchSegments(newQueryIdx, segIdx + 1) ||
+      matchSegments(queryIdx, segIdx + 1)
+    );
+  };
+
+  return matchSegments(0, 0);
+}
+
 function walkupGitignores(dir: string, found: string[] = []): string[] {
   const gitignore = path.join(dir, '.gitignore');
   if (fs.existsSync(gitignore)) found.push(gitignore);
@@ -99,10 +132,14 @@ function buildSyntheticItemOption(
   input: string,
   roots: WorkspaceRoot[],
 ): DirectoryOption {
-  const normalized = path.normalize(input);
   const options = rootOptions(roots);
   const fallbackRoot = roots[0];
   const fallbackRootOption = options[0];
+
+  let normalized = path.normalize(input);
+  normalized = normalized.endsWith(path.sep)
+    ? normalized.slice(0, -1)
+    : normalized;
 
   if (fallbackRoot.multi) {
     const parts = normalized.split(path.sep);
@@ -277,7 +314,7 @@ export function showBasePathQuickPick(
 
     qp.onDidChangeValue((value) => {
       const filteredItems = allItems.filter((item) =>
-        item.label.toLowerCase().includes(value.toLowerCase()),
+        fuzzyMatchPath(value, item.label),
       );
       qp.items = filteredItems.length
         ? filteredItems
