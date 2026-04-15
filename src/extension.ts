@@ -44,6 +44,8 @@ function fuzzyMatchPath(query: string, target: string): boolean {
   query = query.toLowerCase();
   target = target.toLowerCase();
 
+  if (query === path.sep && target === query) return true; // query for root
+
   const segments = target.split(/[/\\\-_]+/).filter(Boolean);
 
   const matchSegments = (queryIdx: number, segIdx: number): boolean => {
